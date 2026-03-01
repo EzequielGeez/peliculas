@@ -2,38 +2,33 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
-WEBHOOK_URL = "https://ptb.discord.com/api/webhooks/1477798883500228870/PDHh7XuQEqdLLY83BuTx85f2IzUeBUWwaui8UJYmdmjkCU8BmOP8Kq4Y9m8zwMzW03N3"
-HISTORIAL_FILE = 'historial_skins.txt'
+WEBHOOK_URL = "https://ptb.discord.com/api/webhooks/1477781995089170683/LHcVrnZ2LkWE9IZYDU1TFPmFFfILpwclRviSde5PhVK_Pkrm9TKD0YwQfv5VxJhjWJea"
+HISTORIAL_FILE = 'historial_juegos.txt'
 
-def buscar_skins_reales():
-    # Usamos una fuente que siempre tenga algo para probar
-    url = "https://www.gamerpower.com/giveaways/csgo" 
+def buscar_juegos():
+    url = "https://www.gamerpower.com/free-games"
     try:
         r = requests.get(url, timeout=10)
         soup = BeautifulSoup(r.content, 'html.parser')
-        items = soup.find_all('h3', class_='ga-title')[:3]
-        if not items:
-            # Si no hay sorteos de CS, buscamos generales para que el canal no muera
-            items = soup.find_all('h3', class_='ga-title')[:1]
-        return [{"id": item.text.strip(), "nombre": item.text.strip()} for item in items]
+        items = soup.find_all('h3', class_='ga-title')[:5]
+        return [item.text.strip() for item in items]
     except:
         return []
 
-def enviar_discord(mensaje):
-    data = {"content": f"🔫 **BOT DE SKINS:** {mensaje}"}
-    requests.post(WEBHOOK_URL, json=data)
-
 if __name__ == "__main__":
+    # Forzamos encoding UTF-8 para evitar el error de tus fotos
     if not os.path.exists(HISTORIAL_FILE):
-        with open(HISTORIAL_FILE, 'w') as f: f.write("inicio\n")
+        with open(HISTORIAL_FILE, 'w', encoding='utf-8') as f:
+            f.write("inicio\n")
 
-    with open(HISTORIAL_FILE, 'r') as f:
+    with open(HISTORIAL_FILE, 'r', encoding='utf-8') as f:
         historial = f.read().splitlines()
 
-    nuevas = buscar_skins_reales()
+    juegos_actuales = buscar_juegos()
     
-    with open(HISTORIAL_FILE, 'a') as f:
-        for s in nuevas:
-            if s['id'] not in historial:
-                enviar_discord(s['nombre'])
-                f.write(s['id'] + '\n')
+    with open(HISTORIAL_FILE, 'a', encoding='utf-8') as f:
+        for juego in juegos_actuales:
+            if juego not in historial:
+                data = {"content": f"🎮 **¡JUEGO GRATIS!** \n> {juego}"}
+                requests.post(WEBHOOK_URL, json=data)
+                f.write(juego + '\n')

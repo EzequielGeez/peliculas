@@ -1,41 +1,31 @@
 import requests
 from bs4 import BeautifulSoup
+import os
 
-# --- CONFIGURACIÓN ---
-URL_CUEVANA = "https://wv3.cuevana3.eu/"
-# Tu Webhook de Discord
-WEBHOOK_URL = "https://discord.com/api/webhooks/1277489715329372305/-fdm8J523E84DDLvhk1sG_OU7A1rIec27" 
+WEBHOOK_URL = "https://ptb.discord.com/api/webhooks/1477655678259822757/PXn84JTNa-Wwiu1smpuBDNifgQeaD8dvbxN6Nh1YCOd8Qeg_xDNUUwd49gSjC_0DMex0"
+HISTORIAL_FILE = 'historial.txt'
 
-def buscar_estrenos():
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+def buscar_pelis():
+    url = "https://cuevana.biz/" 
     try:
-        response = requests.get(URL_CUEVANA, headers=headers)
-        if response.status_code != 200: return
-        soup = BeautifulSoup(response.text, 'html.parser')
-        # Buscamos las últimas 10 películas
-        posts = soup.find_all('li', class_='peli', limit=10)
-        
-        for post in posts:
-            titulo = post.find('h2').text.strip()
-            link = post.find('a')['href']
-            img_tag = post.find('img')
-            imagen_url = img_tag['data-src'] if img_tag.has_attr('data-src') else img_tag['src']
-            
-            # Intentar sacar la sinopsis
-            sinopsis = post.find('div', class_='resumen')
-            texto_sinopsis = sinopsis.text.strip() if sinopsis else "Sin sinopsis disponible."
-
-            embed = {
-                "title": titulo,
-                "url": link,
-                "description": texto_sinopsis,
-                "color": 15158332,
-                "image": {"url": imagen_url}
-            }
-            requests.post(WEBHOOK_URL, json={"embeds": [embed]})
-            
-    except Exception as e:
-        print(f"Error: {e}")
+        r = requests.get(url, timeout=10)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        items = soup.find_all('h2')[:5] 
+        return [item.text.strip() for item in items]
+    except:
+        return []
 
 if __name__ == "__main__":
-    buscar_estrenos()
+    if not os.path.exists(HISTORIAL_FILE):
+        with open(HISTORIAL_FILE, 'w', encoding='utf-8') as f:
+            f.write("inicio\n")
+
+    with open(HISTORIAL_FILE, 'r', encoding='utf-8') as f:
+        historial = f.read().splitlines()
+
+    pelis = buscar_pelis()
+    with open(HISTORIAL_FILE, 'a', encoding='utf-8') as f:
+        for p in pelis:
+            if p not in historial:
+                requests.post(WEBHOOK_URL, json={"content": f"🎬 **NUEVA PELI:** {p}"})
+                f.write(p + '\n')
