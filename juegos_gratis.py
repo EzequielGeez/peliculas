@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
+# Webhook de Juegos Gratis que me pasaste
 WEBHOOK_URL = "https://ptb.discord.com/api/webhooks/1477781995089170683/LHcVrnZ2LkWE9IZYDU1TFPmFFfILpwclRviSde5PhVK_Pkrm9TKD0YwQfv5VxJhjWJea"
 HISTORIAL_FILE = 'historial_juegos.txt'
 
@@ -16,11 +17,12 @@ def buscar_juegos():
         return []
 
 if __name__ == "__main__":
-    # Forzamos encoding UTF-8 para evitar el error de tus fotos
+    # Si el archivo no existe, lo creamos con el formato correcto (UTF-8)
     if not os.path.exists(HISTORIAL_FILE):
         with open(HISTORIAL_FILE, 'w', encoding='utf-8') as f:
             f.write("inicio\n")
 
+    # Leemos el historial usando UTF-8 para evitar errores rojos
     with open(HISTORIAL_FILE, 'r', encoding='utf-8') as f:
         historial = f.read().splitlines()
 
@@ -29,6 +31,6 @@ if __name__ == "__main__":
     with open(HISTORIAL_FILE, 'a', encoding='utf-8') as f:
         for juego in juegos_actuales:
             if juego not in historial:
-                data = {"content": f"🎮 **¡JUEGO GRATIS!** \n> {juego}"}
-                requests.post(WEBHOOK_URL, json=data)
+                payload = {"content": f"🎮 **¡NUEVO JUEGO GRATIS!**\n> {juego}"}
+                requests.post(WEBHOOK_URL, json=payload)
                 f.write(juego + '\n')
