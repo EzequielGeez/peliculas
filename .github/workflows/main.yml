@@ -2,7 +2,8 @@ name: Ejecutar Bots de Ezequiel
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Se ejecuta cada 6 horas
+    # Se ejecuta cada 1 hora para pescar las skins rápido
+    - cron: '0 * * * *'
   workflow_dispatch: # Permite ejecutarlo a mano
 
 jobs:
@@ -10,14 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar repositorio
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configurar Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Instalar librerias
+      - name: Instalar librerías
         run: pip install requests beautifulsoup4
 
       - name: Ejecutar Bot de Cuevana
@@ -31,8 +32,8 @@ jobs:
 
       - name: Actualizar historiales en GitHub
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add historial.txt historial_juegos.txt enviadas.txt historial_skins.txt
+          git config --local user.email "action@github.com"
+          git config --local user.name "github-actions[bot]"
+          git add historial.txt historial_juegos.txt historial_skins.txt
           git commit -m "Actualizar memorias de los bots [skip ci]" || echo "Sin cambios"
           git push origin main
